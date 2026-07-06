@@ -183,6 +183,18 @@
             togglePlayButtons(disabled);
             btnNext.disabled = disabled;
         }
+
+// iPhone Safariのダブルタップズームを強制的に禁止する
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        // 0.3秒以内に2回タップされたら、Safariの標準ズーム動作をキャンセルする
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+        
     </script>
 </body>
 </html>
