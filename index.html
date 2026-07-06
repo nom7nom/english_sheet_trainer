@@ -149,6 +149,7 @@
             enElem.innerHTML = html || "<span style='color:#aaa;'>ボタンを押してスタート</span>";
         }
 
+        // showNextCharなどの関数は省略せずに保持
         function showNextChar() {
             const targetWord = words[currentWordIdx];
             currentCharIdx++;
@@ -159,12 +160,14 @@
             renderDisplay();
         }
 
+        // 1単語進める
         function showNextWord() {
             currentWordIdx++;
             currentCharIdx = 0;
             renderDisplay();
         }
 
+        // 全て表示
         function showAll() {
             enElem.innerText = currentQuestion.en;
             togglePlayButtons(true);
