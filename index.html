@@ -5,7 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>スプレッドシート連携・長英文暗唱トレーナー</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; max-width: 650px; margin: 40px auto; padding: 20px; text-align: center; background-color: #f4f6f9; color: #333; touch-action: manipulation; }
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 650px;
+            margin: 20px auto;
+            padding: 15px;
+            text-align: center;
+            background-color: #f4f6f9;
+            color: #333;
+            box-sizing: border-box;
+        }
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
         #japanese-text { font-size: 18px; font-weight: bold; margin-bottom: 25px; text-align: left; background: #eef5ff; padding: 15px; border-left: 5px solid #007bff; border-radius: 4px; min-height: 40px; }
         #english-display { font-size: 22px; color: #111; min-height: 100px; text-align: left; margin-bottom: 30px; letter-spacing: 0.5px; word-wrap: break-word; }
@@ -42,12 +58,9 @@
     </div>
 
     <script>
-        // =================================================================
-        // 【設定】ここにステップ3でコピーしたスプレッドシートのURLを貼り付けてください
-        // =================================================================
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUiaAElu70JdhrPD_TtXEGJo3tOI8ppj8R2BX6K7Oi4zVEe0uZcup05QkaqzZ0pDo5q0minks7Zr-a/pub?gid=0&single=true&output=csv";
 
-        let questionBank = []; // スプレッドシートから読み込んだ問題リストが入る配列
+        let questionBank = [];
         let currentQuestion = null;
         let words = [];
         let currentWordIdx = 0;
@@ -61,10 +74,8 @@
         const btnNext = document.getElementById("btn-next-q");
         const statusElem = document.getElementById("status-msg");
 
-        // 起動時にスプレッドシートからデータを取得する
         fetchQuestions();
 
-        // 非同期でスプレッドシート（CSV）を読み込む関数
         async function fetchQuestions() {
             try {
                 toggleAllButtons(true);
@@ -74,19 +85,13 @@
                 if (!response.ok) throw new Error("データの取得に失敗しました。URLを確認してください。");
                 
                 const csvText = await response.text();
-                
-                // CSVデータを解析（簡易的な行・カンマ区切り処理）
                 const rows = csvText.split(/\r?\n/);
                 questionBank = [];
 
-                // 0行目は見出し(日本文,英文)なので、1行目（i=1）から処理する
                 for (let i = 1; i < rows.length; i++) {
-                    if (!rows[i].trim()) continue; // 空行はスキップ
-                    
-                    // カンマで分割（シンプルなCSVパース。文章内のカンマ対応のため分割数を2に制限）
+                    if (!rows[i].trim()) continue;
                     const parts = rows[i].split(/,(.*)/); 
                     if (parts.length >= 2) {
-                        // 前後の不要なダブルクォーテーションやスペースを削除
                         const jp = parts[0].replace(/^"|"$/g, '').trim();
                         const en = parts[1].replace(/^"|"$/g, '').trim();
                         if (jp && en) {
@@ -109,14 +114,12 @@
             }
         }
 
-        // 次のランダム問題へ
         function nextQuestion() {
             if (questionBank.length === 0) return;
 
             const randomIdx = Math.floor(Math.random() * questionBank.length);
             currentQuestion = questionBank[randomIdx];
 
-            // 英文を単語に分解（連続するスペースも考慮）
             words = currentQuestion.en.split(/\s+/);
             currentWordIdx = 0;
             currentCharIdx = 0;
@@ -127,7 +130,14 @@
             renderDisplay();
         }
 
-        // 画面描画
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
         function renderDisplay() {
             if (currentWordIdx >= words.length) {
                 enElem.innerText = currentQuestion.en;
@@ -149,7 +159,8 @@
             enElem.innerHTML = html || "<span style='color:#aaa;'>ボタンを押してスタート</span>";
         }
 
-        // showNextCharなどの関数は省略せずに保持
+        let lastTouchEnd = 0;
+
         function showNextChar() {
             const targetWord = words[currentWordIdx];
             currentCharIdx++;
@@ -160,14 +171,12 @@
             renderDisplay();
         }
 
-        // 1単語進める
         function showNextWord() {
             currentWordIdx++;
             currentCharIdx = 0;
             renderDisplay();
         }
 
-        // 全て表示
         function showAll() {
             enElem.innerText = currentQuestion.en;
             togglePlayButtons(true);
@@ -183,18 +192,6 @@
             togglePlayButtons(disabled);
             btnNext.disabled = disabled;
         }
-
-// iPhone Safariのダブルタップズームを強制的に禁止する
-let lastTouchEnd = 0;
-document.addEventListener('touchend', function (event) {
-    const now = (new Date()).getTime();
-    if (now - lastTouchEnd <= 300) {
-        // 0.3秒以内に2回タップされたら、Safariの標準ズーム動作をキャンセルする
-        event.preventDefault();
-    }
-    lastTouchEnd = now;
-}, false);
-        
     </script>
 </body>
 </html>
